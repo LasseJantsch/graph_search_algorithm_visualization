@@ -1,5 +1,11 @@
 # 'Written' Interview KNU
 
+## Get Started:
+1. Check if python is installed `python --version`
+2. If Python is not installed `brew install python`
+3. Navigate to the root directory and execute `python main.py`
+4. When the search algorithm is done, you can close the window with any key stoke
+
 ## Design:
 
 I chose to use an object-oriented program design with visualization in the Terminal in the programming language Python. The reason I chose Python is that I feel most comfortable with Python and Python is vastly accessible over the most common systems. OOP is a design concept that has several advantages in the case of reusability, maintenance, debugging, and readability. It is vastly used in software development and brings structure even to smaller projects. The choice of curses as a visualization tool is justified in its straightforward implementation and its availability in a standard Python installation.
