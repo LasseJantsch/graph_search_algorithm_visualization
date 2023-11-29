@@ -11,6 +11,8 @@ obstracle_ratio = 0.3
 class Graph:
     def __init__(self, size, obstracle_ratio):
         self.size = size
+        self.sleep = 0.01
+
 
         # create adjacancy matrix
         self.graph = [[0]*size*size for i in range(size*size)]
@@ -81,7 +83,7 @@ class Graph:
     
     #update header element
     def update_header(self, win, count, error=False):
-        win.addstr(1,14,str(count))
+        win.addstr(1,15,str(count))
         if error == True:
             win.addstr(2,4,'Not Solvable',curses.color_pair(2))
         win.refresh()
@@ -125,7 +127,7 @@ class Graph:
                         break
 
                     #timeout for visualization
-                    time.sleep(0.01)
+                    time.sleep(self.sleep)
             
             #Handle Error
             if queue == []:
@@ -175,7 +177,7 @@ class Graph:
             self.update_header(header,len(visited))
 
             #timeout for visualization
-            time.sleep(0.01)
+            time.sleep(self.sleep)
         
         #Display shortest path
         if self.goal in visited:
@@ -184,51 +186,58 @@ class Graph:
     #A* Algorithm
 
     # utility function for calculation L1 Norm
-    def calc_distance(self, node):
+    def calc_distance(self, node, parent):
         start =[int(self.start/self.size), self.start%self.size]
         goal = [int(self.goal/self.size), self.goal%self.size]
         n = [int(node/self.size), node%self.size]
         n_goal = sum([abs(a - b) for a, b in zip(goal, n)])
-        n_start = sum([abs(a - b) for a, b in zip(start, n)])
+        n_start = parent[1]
         n_total = n_start + n_goal
-        return  [n_total, n_goal]
+        return  [n_start, n_goal, n_total]
 
     # A* Search algorithm
     def a_star(self, win, header):
-        visited = [self.start]
-        neighbors = []
+        visited = []
+        neighbors = [(self.start, 0, 0, 0)]
         paths = []
 
         while self.goal not in visited:
 
-            #find neignor nodes of last visited and add them to neighbors list
-            neighbor_nodes = [i for i, v in enumerate(self.graph[visited[-1]]) if v == 1]
-            for node in neighbor_nodes:
-                if node not in [n[0] for n in neighbors] and node not in visited:
-                    neighbors.append([node] + self.calc_distance(node))
-                if (visited[-1],node) not in paths:
-                    paths.append((visited[-1],node))
+            #check if there is a value in neighbors
+            if neighbors == []:
+                self.update_header(header, len(visited), True)
+                break
 
             #choose node with lowest score
             index = 0
             for i, node in enumerate(neighbors):
                 n = neighbors[index]
-                if node[1]<n[1] or (node[1]==n[1] and node[2]<n[2]):
+                if node[3]<n[3] or (node[3]==n[3] and node[2]<n[2]):
                     index = i
-            if neighbors == []:
-                self.update_header(header, len(visited), True)
-                break
 
             # delete chosen node form neighbors and append to visited
             n = neighbors.pop(index)
             visited.append(n[0])
+
+            #find neignor nodes of last visited and add them to neighbors list
+            new_neighbor_nodes = [i for i, v in enumerate(self.graph[n[0]]) if v == 1]
+            
+            for node in new_neighbor_nodes:
+                if node in visited:
+                    continue
+                dist = self.calc_distance(node, n)
+                if node not in [n[0] for i, n in enumerate(neighbors)]:
+                    neighbors.append([node]+dist)
+
+                if (n[0],node) not in paths:
+                    paths.append((n[0],node))
 
             #update window
             self.update_field(win, visited)
             self.update_header(header,len(visited))
 
             #timeout for visualization
-            time.sleep(0.01)
+            time.sleep(self.sleep)
 
         #Display shortest path
         if self.goal in visited:
